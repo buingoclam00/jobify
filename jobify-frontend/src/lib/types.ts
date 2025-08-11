@@ -425,6 +425,7 @@ export interface AuthContextType {
   userType: UserRole | null;
   token: string | null;
   isLoading: boolean;
+  isInitialized: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   updateProfile: (data: User | Company | Admin) => Promise<void>;

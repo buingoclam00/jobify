@@ -103,6 +103,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        dispatch({ type: 'SET_LOADING', payload: true });
+
         const token = getLocalStorage(STORAGE_KEYS.TOKEN, null);
         const userData = getLocalStorage(STORAGE_KEYS.USER, null) as {
           user: User | Company | Admin;
@@ -110,27 +112,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } | null;
 
         if (token && userData && userData.user && userData.type) {
-          // Validate token with server
+          // Option 1: Validate token với server (có thể fail)
+          // Option 2: Chỉ khôi phục từ localStorage (không fail)
+
+          // Chọn Option 2 để tránh mất data khi F5
+          dispatch({
+            type: 'LOGIN_SUCCESS',
+            payload: {
+              user: userData.user,
+              userType: userData.type,
+              token,
+            },
+          });
+
+          // Nếu muốn validate token, có thể uncomment đoạn này:
+          /*
           try {
             await authApi.validateToken();
-
-            dispatch({
-              type: 'LOGIN_SUCCESS',
-              payload: {
-                user: userData.user,
-                userType: userData.type,
-                token,
-              },
-            });
-          } catch {
-            // Token is invalid, clear stored data
-            removeLocalStorage(STORAGE_KEYS.TOKEN);
-            removeLocalStorage(STORAGE_KEYS.USER);
+            // Token valid - đã khôi phục ở trên
+          } catch (error) {
+            console.warn('Token validation failed, but keeping localStorage data:', error);
+            // Không xóa localStorage, chỉ log warning
           }
+          */
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
       } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
         dispatch({ type: 'SET_INITIALIZED', payload: true });
       }
     };
@@ -254,6 +263,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     userType: state.userType,
     token: state.token,
     isLoading: state.isLoading,
+    isInitialized: state.isInitialized,
     login,
     logout,
     updateProfile,
