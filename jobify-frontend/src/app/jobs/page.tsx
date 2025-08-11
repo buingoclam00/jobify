@@ -9,6 +9,7 @@ import JobsSortControls from '@/components/features/jobs/jobs-sort-controls';
 import { Button, SkeletonList } from '@/components/ui';
 import { useSidebar } from '@/contexts/ui-context';
 import { useJobs } from '@/hooks/use-jobs';
+import { useUserJobActions } from '@/hooks/use-user-job-actions';
 import { motion } from 'framer-motion';
 import { SlidersHorizontal } from 'lucide-react';
 import { Suspense, useState } from 'react';
@@ -17,6 +18,13 @@ function JobsPageContent() {
   const [showFilters, setShowFilters] = useState(true);
   const [showDetailsPanel, setShowDetailsPanel] = useState(false);
   const { isOpen: sidebarOpen } = useSidebar();
+  const {
+    savedIds,
+    appliedIds,
+    actionLoading,
+    toggleSave,
+    applyToJob,
+  } = useUserJobActions({ autoLoad: true });
   const {
     jobs,
     pagination,
@@ -177,6 +185,12 @@ function JobsPageContent() {
                         job={job}
                         isSelected={selectedJobId === job._id}
                         onClick={() => handleJobSelect(job._id)}
+                        saved={savedIds.has(job._id)}
+                        applied={appliedIds.has(job._id)}
+                        saving={!!actionLoading[job._id]}
+                        applying={!!actionLoading[job._id]}
+                        onToggleSave={() => toggleSave(job._id)}
+                        onApply={() => applyToJob(job._id)}
                       />
                     </motion.div>
                   ))}
@@ -210,6 +224,12 @@ function JobsPageContent() {
                 <JobDetailsPanel
                   job={selectedJob}
                   onClose={closeDetailsPanel}
+                  saved={savedIds.has(selectedJob._id)}
+                  applied={appliedIds.has(selectedJob._id)}
+                  saving={!!actionLoading[selectedJob._id]}
+                  applying={!!actionLoading[selectedJob._id]}
+                  onToggleSave={() => toggleSave(selectedJob._id)}
+                  onApply={() => applyToJob(selectedJob._id)}
                 />
               </div>
             )}
@@ -233,6 +253,12 @@ function JobsPageContent() {
                 job={selectedJob}
                 onClose={closeDetailsPanel}
                 isMobile
+                saved={savedIds.has(selectedJob._id)}
+                applied={appliedIds.has(selectedJob._id)}
+                saving={!!actionLoading[selectedJob._id]}
+                applying={!!actionLoading[selectedJob._id]}
+                onToggleSave={() => toggleSave(selectedJob._id)}
+                onApply={() => applyToJob(selectedJob._id)}
               />
             </motion.div>
           </div>

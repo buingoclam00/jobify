@@ -1,43 +1,43 @@
 'use client';
 
 import RelatedJobs from '@/components/features/jobs/related-jobs';
-import JobApplicationForm from '@/components/forms/job-application-form';
 import {
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  SkeletonCard
+    Avatar,
+    Badge,
+    Button,
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    SkeletonCard
 } from '@/components/ui';
 import { useApi } from '@/hooks/use-api';
+import { useUserJobActions } from '@/hooks/use-user-job-actions';
 import { jobsApi } from '@/lib/api';
 import { EXPERIENCE_LEVEL_OPTIONS, JOB_TYPE_OPTIONS } from '@/lib/constants';
 import {
-  formatDate,
-  formatRelativeTime,
-  formatSalaryRange
+    formatDate,
+    formatRelativeTime,
+    formatSalaryRange
 } from '@/lib/utils';
 import {
-  ArrowLeft,
-  Briefcase,
-  Building2,
-  Calendar,
-  CheckCircle,
-  Clock,
-  DollarSign,
-  Globe,
-  Heart,
-  Mail,
-  MapPin,
-  Share2,
-  Star,
-  Users
+    ArrowLeft,
+    Briefcase,
+    Building2,
+    Calendar,
+    CheckCircle,
+    Clock,
+    DollarSign,
+    Globe,
+    Heart,
+    Mail,
+    MapPin,
+    Share2,
+    Star,
+    Users
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import { toast } from 'sonner';
 
 function JobDetailPageContent() {
@@ -45,9 +45,7 @@ function JobDetailPageContent() {
   const router = useRouter();
   const jobId = params.id as string;
 
-  const [isSaved, setIsSaved] = useState(false);
-  const [showApplicationForm, setShowApplicationForm] = useState(false);
-  const [isApplied, setIsApplied] = useState(false);
+  const { savedIds, appliedIds, actionLoading, toggleSave, applyToJob } = useUserJobActions({ autoLoad: true });
 
   // Fetch job details
   const {
@@ -96,7 +94,7 @@ function JobDetailPageContent() {
   const company = typeof job.companyId === 'object' ? job.companyId : null;
   const category = typeof job.categoryId === 'object' ? job.categoryId : null;
   const skills = Array.isArray(job.skillIds)
-    ? job.skillIds.filter(skill => typeof skill === 'object')
+    ? job.skillIds.filter((skill: any) => typeof skill === 'object')
     : [];
 
   const jobTypeOption = JOB_TYPE_OPTIONS.find(option => option.value === job.jobType);
@@ -105,10 +103,12 @@ function JobDetailPageContent() {
   const isExpired = job.expiresAt && new Date(job.expiresAt) < new Date();
   const isNew = new Date(job.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
+  const isSaved = savedIds.has(jobId);
+  const isApplied = appliedIds.has(jobId);
+  const isActing = !!actionLoading[jobId];
+
   const handleSaveToggle = () => {
-    setIsSaved(!isSaved);
-    toast.success(isSaved ? 'Đã bỏ lưu việc làm' : 'Đã lưu việc làm');
-    // TODO: Implement save/unsave API call
+    toggleSave(jobId);
   };
 
   const handleShare = () => {
@@ -124,19 +124,15 @@ function JobDetailPageContent() {
     }
   };
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (isApplied) {
       toast.info('Bạn đã ứng tuyển vào vị trí này rồi');
       return;
     }
-    setShowApplicationForm(true);
-  };
-
-  const handleApplicationSuccess = () => {
-    setIsApplied(true);
-    setShowApplicationForm(false);
-    toast.success('Ứng tuyển thành công!');
-    refetchJob();
+    const ok = await applyToJob(jobId);
+    if (ok) {
+      refetchJob();
+    }
   };
 
   return (
@@ -169,8 +165,8 @@ function JobDetailPageContent() {
                 variant="outline"
                 size="sm"
                 onClick={handleSaveToggle}
-                className={`flex items-center gap-2 ${isSaved ? 'text-red-600 border-red-200' : ''
-                  }`}
+                className={`flex items-center gap-2 ${isSaved ? 'text-red-600 border-red-200' : ''}`}
+                disabled={isActing}
               >
                 <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
                 {isSaved ? 'Đã lưu' : 'Lưu việc'}
@@ -297,7 +293,8 @@ function JobDetailPageContent() {
                     <Button
                       size="lg"
                       onClick={handleApply}
-                      disabled={isExpired || !job.isActive || isApplied}
+                      disabled={isExpired || !job.isActive || isApplied || isActing}
+                      loading={isActing}
                       className="w-full md:w-auto"
                     >
                       {isExpired ? 'Đã hết hạn' :
@@ -329,7 +326,7 @@ function JobDetailPageContent() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-3">
-                      {job.requirements.map((requirement, index) => (
+                      {job.requirements.map((requirement: any, index: number) => (
                         <li key={index} className="flex items-start gap-3">
                           <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">{requirement}</span>
@@ -348,7 +345,7 @@ function JobDetailPageContent() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-3">
-                      {job.benefits.map((benefit, index) => (
+                      {job.benefits.map((benefit: any, index: number) => (
                         <li key={index} className="flex items-start gap-3">
                           <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                           <span className="text-gray-700">{benefit}</span>
@@ -448,13 +445,7 @@ function JobDetailPageContent() {
         </div>
       </div>
 
-      {/* Application Form Modal */}
-      <JobApplicationForm
-        isOpen={showApplicationForm}
-        onClose={() => setShowApplicationForm(false)}
-        job={job}
-        onSuccess={handleApplicationSuccess}
-      />
+  {/* Application Form Modal removed: applying directly via API */}
     </div>
   );
 }

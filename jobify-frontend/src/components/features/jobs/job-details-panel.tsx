@@ -34,12 +34,19 @@ interface JobDetailsPanelProps {
   job: JobPost;
   onClose: () => void;
   isMobile?: boolean;
+  // New controls for save/apply from parent
+  saved?: boolean;
+  applied?: boolean;
+  saving?: boolean;
+  applying?: boolean;
+  onToggleSave?: () => void;
+  onApply?: () => void;
 }
 
-const JobDetailsPanel = ({ job, onClose, isMobile = false }: JobDetailsPanelProps) => {
-  const [isSaved, setIsSaved] = useState(false);
+const JobDetailsPanel = ({ job, onClose, isMobile = false, saved, applied, saving = false, applying = false, onToggleSave, onApply }: JobDetailsPanelProps) => {
+  const [isSavedInternal, setIsSavedInternal] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
-  const [isApplying, setIsApplying] = useState(false);
+  const isSaved = typeof saved === 'boolean' ? saved : isSavedInternal;
 
   const company = typeof job.companyId === 'object' ? job.companyId : null;
   const category = typeof job.categoryId === 'object' ? job.categoryId : null;
@@ -54,8 +61,8 @@ const JobDetailsPanel = ({ job, onClose, isMobile = false }: JobDetailsPanelProp
   const isNew = new Date(job.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
   const handleSaveToggle = () => {
-    setIsSaved(!isSaved);
-    // TODO: Implement save/unsave API call
+    if (onToggleSave) onToggleSave();
+    else setIsSavedInternal(!isSavedInternal);
   };
 
   const handleApply = () => {
@@ -63,12 +70,8 @@ const JobDetailsPanel = ({ job, onClose, isMobile = false }: JobDetailsPanelProp
   };
 
   const handleSubmitApplication = async () => {
-    setIsApplying(true);
-    // TODO: Implement apply API call
-    setTimeout(() => {
-      setIsApplying(false);
-      setShowApplicationModal(false);
-    }, 2000);
+    if (onApply) onApply();
+    setShowApplicationModal(false);
   };
 
   const handleShare = () => {
@@ -323,8 +326,8 @@ const JobDetailsPanel = ({ job, onClose, isMobile = false }: JobDetailsPanelProp
             <Button
               variant="outline"
               onClick={handleSaveToggle}
-              className={`flex items-center gap-2 ${isSaved ? 'text-red-600 border-red-200' : ''
-                }`}
+              disabled={saving}
+              className={`flex items-center gap-2 ${isSaved ? 'text-red-600 border-red-200' : ''}`}
             >
               <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
               {isSaved ? 'Đã lưu' : 'Lưu việc'}
@@ -332,10 +335,11 @@ const JobDetailsPanel = ({ job, onClose, isMobile = false }: JobDetailsPanelProp
 
             <Button
               onClick={handleApply}
-              disabled={isExpired || !job.isActive}
+              disabled={isExpired || !job.isActive || applying || applied}
               className="flex-1"
+              loading={applying}
             >
-              {isExpired ? 'Đã hết hạn' : 'Ứng tuyển ngay'}
+              {applied ? 'Đã ứng tuyển' : isExpired ? 'Đã hết hạn' : 'Ứng tuyển ngay'}
             </Button>
           </div>
         </div>
@@ -361,16 +365,16 @@ const JobDetailsPanel = ({ job, onClose, isMobile = false }: JobDetailsPanelProp
               <Button
                 variant="outline"
                 onClick={() => setShowApplicationModal(false)}
-                disabled={isApplying}
+                disabled={applying}
               >
                 Hủy
               </Button>
               <Button
                 onClick={handleSubmitApplication}
-                loading={isApplying}
+                loading={applying}
                 className="flex-1"
               >
-                {isApplying ? 'Đang gửi...' : 'Xác nhận ứng tuyển'}
+                {applying ? 'Đang gửi...' : 'Xác nhận ứng tuyển'}
               </Button>
             </div>
           </div>

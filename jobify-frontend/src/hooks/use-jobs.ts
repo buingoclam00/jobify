@@ -1,7 +1,7 @@
 'use client';
 
 import { jobsApi } from '@/lib/api';
-import { JobSearchFilters } from '@/lib/types';
+import { JobPost, JobSearchFilters } from '@/lib/types';
 import { buildQueryString, parseQueryString } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
@@ -22,19 +22,25 @@ export function useJobs(options: UseJobsOptions = {}) {
   const [filters, setFilters] = useState<JobSearchFilters>(() => {
     const urlParams = parseQueryString(searchParams.toString());
     console.log('urlParams', urlParams);
+    const sortByParam = (urlParams.sortBy as string) || 'createdAt';
+    const sortBy: 'createdAt' | 'updatedAt' | 'salaryMin' | 'salaryMax' =
+      ['createdAt', 'updatedAt', 'salaryMin', 'salaryMax'].includes(sortByParam)
+        ? (sortByParam as any)
+        : 'createdAt';
+
     return {
       search: (urlParams.q as string) || '',
       categoryId: (urlParams.categoryId as string) || undefined,
-      skillIds: Array.isArray(urlParams.skillIds) ? urlParams.skillIds : urlParams.skillIds ? [urlParams.skillIds] : [],
+      skillIds: Array.isArray(urlParams.skillIds) ? urlParams.skillIds as string[] : urlParams.skillIds ? [urlParams.skillIds as string] : [],
       location: (urlParams.location as string) || '',
       minSalary: urlParams.minSalary ? Number(urlParams.minSalary) : undefined,
       maxSalary: urlParams.maxSalary ? Number(urlParams.maxSalary) : undefined,
-      jobType: Array.isArray(urlParams.jobType) ? urlParams.jobType : urlParams.jobType ? [urlParams.jobType] : [],
-      experienceLevel: Array.isArray(urlParams.experienceLevel) ? urlParams.experienceLevel : urlParams.experienceLevel ? [urlParams.experienceLevel] : [],
+      jobType: Array.isArray(urlParams.jobType) ? urlParams.jobType as any : urlParams.jobType ? [urlParams.jobType as any] : [],
+      experienceLevel: Array.isArray(urlParams.experienceLevel) ? urlParams.experienceLevel as any : urlParams.experienceLevel ? [urlParams.experienceLevel as any] : [],
       companyId: (urlParams.companyId as string) || undefined,
       page: urlParams.page ? Number(urlParams.page) : 1,
       limit,
-      sortBy: (urlParams.sortBy) || 'createdAt',
+      sortBy,
       sortOrder: (urlParams.sortOrder as 'asc' | 'desc') || 'desc',
     };
   });
@@ -69,7 +75,7 @@ export function useJobs(options: UseJobsOptions = {}) {
     refetch,
     loadMore,
     hasNextPage,
-  } = usePaginatedApi(
+  } = usePaginatedApi<JobPost>(
     apiCall,
     limit,
     { immediate: autoLoad }
@@ -83,14 +89,14 @@ export function useJobs(options: UseJobsOptions = {}) {
       categoryId: newFilters.categoryId || undefined,
       skillIds: newFilters.skillIds?.length ? newFilters.skillIds : undefined,
       location: newFilters.location || undefined,
-      minSalary: newFilters.minSalary || undefined,
-      maxSalary: newFilters.maxSalary || undefined,
+      minSalary: newFilters.minSalary ?? undefined,
+      maxSalary: newFilters.maxSalary ?? undefined,
       jobType: newFilters.jobType?.length ? newFilters.jobType : undefined,
       experienceLevel: newFilters.experienceLevel?.length ? newFilters.experienceLevel : undefined,
       companyId: newFilters.companyId || undefined,
-      page: newFilters.page !== 1 ? newFilters.page : undefined,
-      sortBy: newFilters.sortBy !== 'createdAt' ? newFilters.sortBy : undefined,
-      sortOrder: newFilters.sortOrder !== 'desc' ? newFilters.sortOrder : undefined,
+      page: newFilters.page && newFilters.page !== 1 ? newFilters.page : undefined,
+      sortBy: newFilters.sortBy && newFilters.sortBy !== 'createdAt' ? newFilters.sortBy : undefined,
+      sortOrder: newFilters.sortOrder && newFilters.sortOrder !== 'desc' ? newFilters.sortOrder : undefined,
     });
 
     const url = queryString ? `/jobs?${queryString}` : '/jobs';
@@ -179,7 +185,7 @@ export function useJobs(options: UseJobsOptions = {}) {
   }, []);
 
   // Get selected job
-  const selectedJob = selectedJobId ? jobs.find(job => job._id === selectedJobId) : null;
+  const selectedJob: JobPost | null = selectedJobId ? jobs.find(job => job._id === selectedJobId) || null : null;
 
   // Check if any filters are active
   const hasActiveFilters = Boolean(

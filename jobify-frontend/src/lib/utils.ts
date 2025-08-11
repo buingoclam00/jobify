@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Build query string from object
  */
-export function buildQueryString(params: Record<string, string | number | boolean | string[] | number[]>): string {
+export function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {

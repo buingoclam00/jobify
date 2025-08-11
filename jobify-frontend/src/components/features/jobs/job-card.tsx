@@ -29,6 +29,13 @@ interface JobCardProps {
   onClick?: () => void;
   showSaveButton?: boolean;
   compact?: boolean;
+  // New: control save/apply externally
+  saved?: boolean;
+  applied?: boolean;
+  saving?: boolean;
+  applying?: boolean;
+  onToggleSave?: (e: React.MouseEvent) => void;
+  onApply?: (e: React.MouseEvent) => void;
 }
 
 const JobCard = ({
@@ -36,10 +43,17 @@ const JobCard = ({
   isSelected = false,
   onClick,
   showSaveButton = true,
-  compact = false
+  compact = false,
+  saved,
+  applied,
+  saving = false,
+  applying = false,
+  onToggleSave,
+  onApply,
 }: JobCardProps) => {
-  const [isSaved, setIsSaved] = useState(false);
+  const [isSavedInternal, setIsSavedInternal] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const isSaved = typeof saved === 'boolean' ? saved : isSavedInternal;
 
   const company = typeof job.companyId === 'object' ? job.companyId : null;
   const category = typeof job.categoryId === 'object' ? job.categoryId : null;
@@ -50,14 +64,22 @@ const JobCard = ({
   const jobTypeOption = JOB_TYPE_OPTIONS.find(option => option.value === job.jobType);
   const experienceOption = EXPERIENCE_LEVEL_OPTIONS.find(option => option.value === job.experienceLevel);
 
-  const handleSaveToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsSaved(!isSaved);
-    // TODO: Implement save/unsave API call
+  const handleSaveToggle = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e) e.stopPropagation();
+    if (onToggleSave) {
+      onToggleSave(e as any);
+    } else {
+      setIsSavedInternal(!isSavedInternal);
+    }
   };
 
-  const handleViewJob = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleApplyClick = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e) e.stopPropagation();
+    if (onApply) onApply(e as any);
+  };
+
+  const handleViewJob = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e) e.stopPropagation();
     window.open(`/jobs/${job._id}`, '_blank');
   };
 
@@ -162,9 +184,21 @@ const JobCard = ({
                       variant="ghost"
                       size="sm"
                       onClick={handleSaveToggle}
+                      disabled={saving}
                       className={`p-2 ${isSaved ? 'text-red-500' : 'text-gray-400'}`}
                     >
                       <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+                    </Button>
+                  )}
+
+                  {onApply && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={applying || applied}
+                      onClick={handleApplyClick}
+                    >
+                      {applied ? 'Đã ứng tuyển' : applying ? 'Đang nộp...' : 'Ứng tuyển'}
                     </Button>
                   )}
 
