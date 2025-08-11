@@ -22,6 +22,9 @@ export class Company extends BaseSchema {
   websiteUrl?: string;
 
   @Prop()
+  phone?: string;
+
+  @Prop()
   location?: string;
 
   @Prop()

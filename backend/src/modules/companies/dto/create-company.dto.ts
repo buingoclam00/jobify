@@ -17,6 +17,14 @@ export class CreateCompanyDto {
   @IsEmail()
   email: string;
 
+  @ApiPropertyOptional({
+    description: 'Company phone number',
+    example: '0123456789',
+  })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
   @ApiProperty({
     description: 'Company password',
     minLength: 6,

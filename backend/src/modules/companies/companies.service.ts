@@ -22,8 +22,11 @@ export class CompaniesService {
     try {
       const hashedPassword = await bcrypt.hash(createCompanyDto.password, 10);
 
+      // Loại bỏ password và chỉ lưu passwordHash
+      const { password, ...companyData } = createCompanyDto;
+
       const newCompany = new this.companyModel({
-        ...createCompanyDto,
+        ...companyData,
         passwordHash: hashedPassword,
       });
 

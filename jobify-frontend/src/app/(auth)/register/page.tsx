@@ -488,7 +488,7 @@ const RegisterPage = () => {
               </div>
 
               {/* Terms and Conditions */}
-              <div className="flex items-start gap-3 items-center">
+              <div className="flex  gap-3 items-center">
                 <input
                   id="accept-terms"
                   type="checkbox"
