@@ -45,16 +45,22 @@ export class JobPostsService {
       sortBy = 'createdAt',
       sortOrder = 'desc',
     } = filterDto;
-
+    console.log(filterDto);
     const skip = (page - 1) * limit;
 
     // Build filter object
     const filter: any = { isActive: true };
 
-    if (search) {
+    // Add search filter if search parameter is provided
+    if (search && search.trim()) {
       filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
+        { title: { $regex: search.trim(), $options: 'i' } },
+        { description: { $regex: search.trim(), $options: 'i' } },
+      ];
+    } else {
+      filter.$or = [
+        { title: { $regex: '', $options: 'i' } },
+        { description: { $regex: '', $options: 'i' } },
       ];
     }
 

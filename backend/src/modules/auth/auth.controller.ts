@@ -61,6 +61,41 @@ export class AuthController {
     return this.authService.loginAdmin(loginDto);
   }
 
+  @Post('login')
+  @Public()
+  @ApiOperation({ summary: 'Unified login - automatically detects user type' })
+  @ApiResponse({
+    status: 200,
+    description: 'User logged in successfully',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
+    return this.authService.login(loginDto);
+  }
+
+  @Post('check-email')
+  @Public()
+  @ApiOperation({ summary: 'Check if email exists in any table' })
+  @ApiResponse({
+    status: 200,
+    description: 'Email check result',
+    schema: {
+      type: 'object',
+      properties: {
+        exists: { type: 'boolean' },
+        message: { type: 'string' }
+      }
+    }
+  })
+  async checkEmail(@Body() body: { email: string }) {
+    const exists = await this.authService.checkEmailExists(body.email);
+    return {
+      exists,
+      message: exists ? 'Email already exists' : 'Email is available'
+    };
+  }
+
   @Post('validate')
   @Public()
   @ApiOperation({ summary: 'Validate JWT token' })
