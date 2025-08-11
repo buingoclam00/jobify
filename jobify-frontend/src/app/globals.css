@@ -88,11 +88,6 @@
 }
 
 
-button a,
-button a:hover {
-  cursor: pointer;
-}
-
 body {
   color: hsl(var(--foreground));
   background: hsl(var(--background));

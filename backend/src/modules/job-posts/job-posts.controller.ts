@@ -30,7 +30,6 @@ export class JobPostsController {
   constructor(private readonly jobPostsService: JobPostsService) { }
 
   @Post()
-  @Public()
   @ApiOperation({ summary: 'Create a new job post' })
   @ApiResponse({
     status: 201,

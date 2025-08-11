@@ -179,7 +179,7 @@ const JobApplicationForm = ({
               <Button variant="outline" onClick={handleClose}>
                 Đóng
               </Button>
-              <Button onClick={() => window.location.href = '/auth/login'}>
+              <Button onClick={() => window.location.href = '/login'}>
                 Đăng nhập
               </Button>
             </div>

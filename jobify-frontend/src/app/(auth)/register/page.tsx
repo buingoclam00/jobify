@@ -488,13 +488,13 @@ const RegisterPage = () => {
               </div>
 
               {/* Terms and Conditions */}
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 items-center">
                 <input
                   id="accept-terms"
                   type="checkbox"
                   checked={acceptTerms}
                   onChange={(e) => setAcceptTerms(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <label htmlFor="accept-terms" className="text-sm text-gray-700">
                   Tôi đồng ý với{' '}

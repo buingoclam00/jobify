@@ -46,6 +46,12 @@ export class JobPost extends BaseSchema {
   @Prop()
   expiresAt?: Date;
 
+  @Prop([String])
+  requirements?: string[];
+
+  @Prop([String])
+  benefits?: string[];
+
   // Virtual populates
   company?: Company;
   category?: Category;

@@ -13,7 +13,7 @@ import {
   SkeletonCard
 } from '@/components/ui';
 import { useApi } from '@/hooks/use-api';
-import { companiesApi, jobsApi } from '@/lib/api';
+import { jobsApi } from '@/lib/api';
 import { EXPERIENCE_LEVEL_OPTIONS, JOB_TYPE_OPTIONS } from '@/lib/constants';
 import {
   formatDate,
@@ -37,7 +37,7 @@ import {
   Users
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { toast } from 'sonner';
 
 function JobDetailPageContent() {
@@ -56,25 +56,12 @@ function JobDetailPageContent() {
     error: jobError,
     refetch: refetchJob
   } = useApi(
-    () => jobsApi.getJob(jobId),
-    null,
+    () => jobsApi.getJobById(jobId),
+    [jobId], // Chỉ fetch khi jobId thay đổi
     { immediate: true }
   );
 
-  // Fetch company jobs if we have company info
-  const { data: companyJobs } = useApi(
-    () => job?.companyId && typeof job.companyId === 'object'
-      ? companiesApi.getCompanyJobs(job.companyId._id)
-      : Promise.resolve(null),
-    [],
-    { immediate: false }
-  );
-
-  useEffect(() => {
-    if (job?.companyId && typeof job.companyId === 'object') {
-      // Fetch company jobs when job data is available
-    }
-  }, [job]);
+  // Chỉ fetch job detail, không cần fetch company jobs ở đây
 
   if (jobError) {
     return (

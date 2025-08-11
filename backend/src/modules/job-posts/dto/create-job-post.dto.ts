@@ -118,4 +118,31 @@ export class CreateJobPostDto {
   @Type(() => Date)
   @IsDate()
   expiresAt?: Date;
+
+  @ApiPropertyOptional({
+    description: 'Job requirements',
+    example: [
+      'Bachelor degree in Computer Science',
+      'At least 3 years of experience',
+    ],
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  requirements?: string[];
+
+  @ApiPropertyOptional({
+    description: 'Job benefits',
+    example: [
+      'Health insurance',
+      'Flexible working hours',
+      '13th month salary',
+    ],
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  benefits?: string[];
 }
