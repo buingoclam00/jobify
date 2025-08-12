@@ -128,7 +128,7 @@ const CompaniesPage = () => {
               <Building2 className="w-8 h-8 text-blue-600" />
               <div>
                 <p className="text-sm text-gray-600">Tổng Công Ty</p>
-                <p className="text-2xl font-bold text-gray-900">{companies?.totalItems || 0}</p>
+                <p className="text-2xl font-bold text-gray-900">{companies?.data?.length || 0}</p>
               </div>
             </div>
           </CardContent>
