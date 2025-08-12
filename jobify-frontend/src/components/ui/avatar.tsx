@@ -58,10 +58,10 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
       <div className={avatarClasses} ref={ref} {...props}>
         {src && !imageError && (
           <img
-            src={src || 'https://picsum.photos/200/300'}
+            src={src}
             alt={alt || name || 'Avatar'}
             className={cn(
-              'w-full h-full object-cover transition-opacity duration-200',
+              'w-full h-full object-contain transition-opacity duration-200',
               imageLoaded ? 'opacity-100' : 'opacity-0'
             )}
             onLoad={handleImageLoad}

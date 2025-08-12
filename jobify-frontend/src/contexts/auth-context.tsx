@@ -168,6 +168,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         _id: authUser.id,
         name: authUser.name || '',
         email: authUser.email,
+        logoUrl: authUser.logoUrl || '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         ...(authUser.role && { role: authUser.role })

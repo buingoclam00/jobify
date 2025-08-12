@@ -57,6 +57,7 @@ export interface Company extends BaseEntity {
   employeeCount?: string;
   industry?: string;
   founded?: number;
+
 }
 
 export interface Admin extends BaseEntity {
@@ -141,6 +142,7 @@ export interface AuthResponse {
     id: string;
     email: string;
     name?: string;
+    logoUrl?: string;
     type: 'user' | 'company' | 'admin';
     role?: AdminRole;
   };

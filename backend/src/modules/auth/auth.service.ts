@@ -147,6 +147,7 @@ export class AuthService {
             id: (company._id as any).toString(),
             email: company.email,
             name: company.name,
+            logoUrl: company.logoUrl,
             type: 'company',
           },
         };

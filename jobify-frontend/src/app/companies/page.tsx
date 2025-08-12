@@ -288,7 +288,7 @@ const CompaniesPage = () => {
                         <img
                           src={company.logoUrl}
                           alt={company.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
                       ) : (
                         <Building2 className="w-8 h-8 text-gray-400" />

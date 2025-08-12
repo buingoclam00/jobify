@@ -115,9 +115,7 @@ Once the application is running, you can access:
 
 #### Authentication
 
-- `POST /api/v1/auth/login/user` - User login
-- `POST /api/v1/auth/login/company` - Company login
-- `POST /api/v1/auth/login/admin` - Admin login
+- `POST /api/v1/auth/login` - login
 - `POST /api/v1/auth/validate` - Validate JWT token
 - `POST /api/v1/auth/refresh` - Refresh JWT token
 

@@ -20,6 +20,7 @@ export class AuthResponseDto {
     id: string;
     email: string;
     name?: string;
+    logoUrl?: string;
     type: 'user' | 'company' | 'admin';
     role?: string;
   };

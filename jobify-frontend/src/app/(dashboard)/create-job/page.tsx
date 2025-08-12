@@ -459,7 +459,7 @@ const CreateJobPage = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Lương tối thiểu (VNĐ)
+                          Lương tối thiểu (VNĐ) <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="number"
@@ -474,7 +474,7 @@ const CreateJobPage = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Lương tối đa (VNĐ)
+                          Lương tối đa (VNĐ) <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="number"
