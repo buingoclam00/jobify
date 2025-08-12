@@ -33,17 +33,17 @@ export function useUserJobActions(options: UseUserJobActionsOptions = {}) {
     try {
       setLoadingSaved(true);
       const resp = await savedJobsApi.getSavedJobIds(userId);
-      const raw = (resp as any)?.data;
+      const raw = (resp as { data?: unknown })?.data;
       const ids: string[] = Array.isArray(raw)
         ? raw
-        : Array.isArray(raw?.data)
-          ? raw.data
-          : Array.isArray(raw?.ids)
-            ? raw.ids
-            : Array.isArray(raw?.savedJobIds)
-              ? raw.savedJobIds
-              : Array.isArray(raw?.data?.savedJobIds)
-                ? raw.data.savedJobIds
+        : Array.isArray((raw as { data?: unknown[] })?.data)
+          ? (raw as { data: unknown[] }).data
+          : Array.isArray((raw as { ids?: unknown[] })?.ids)
+            ? (raw as { ids: unknown[] }).ids
+            : Array.isArray((raw as { savedJobIds?: unknown[] })?.savedJobIds)
+              ? (raw as { savedJobIds: unknown[] }).savedJobIds
+              : Array.isArray((raw as { data?: { savedJobIds?: unknown[] } })?.data?.savedJobIds)
+                ? (raw as { data: { savedJobIds: unknown[] } }).data.savedJobIds
                 : [];
       setSavedIds(new Set(ids));
     } catch (e) {
@@ -57,15 +57,57 @@ export function useUserJobActions(options: UseUserJobActionsOptions = {}) {
     if (!isAuthenticated || !userId) return;
     try {
       setLoadingApplied(true);
-      const resp = await applicationsApi.getApplicationsByUser(userId, { limit: 100 });
-      const raw = (resp as any)?.data;
-      const items: any[] = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
-      const ids = items
-        .map((a) => a?.jobPostId)
-        .map((jp) => (typeof jp === 'object' && jp?._id ? jp._id : jp))
-        .filter(Boolean);
-      setAppliedIds(new Set(ids as string[]));
+      console.log('Fetching applied jobs for user:', userId);
+
+      // Sử dụng API mới đơn giản hơn
+      try {
+        const resp = await applicationsApi.getApplicationsByUserSimple(userId);
+        console.log('Simple applications API response:', resp);
+
+        if (resp?.data && Array.isArray(resp.data)) {
+          const applications = resp.data;
+          const jobIds = applications.map(app => {
+            // jobPostId có thể là object hoặc string
+            if (typeof app.jobPostId === 'object' && app.jobPostId?._id) {
+              return app.jobPostId._id;
+            }
+            return app.jobPostId;
+          }).filter(Boolean);
+          console.log('Extracted job IDs from simple API:', jobIds);
+          setAppliedIds(new Set(jobIds));
+          return;
+        }
+      } catch (simpleApiError) {
+        console.warn('Simple API failed, trying original API:', simpleApiError);
+      }
+
+      // Fallback: thử gọi API getApplicationsByUser gốc
+      try {
+        const resp = await applicationsApi.getApplicationsByUser(userId, { limit: 100 });
+        console.log('Original applications API response:', resp);
+
+        const raw = (resp as { data?: unknown })?.data;
+        const items: unknown[] = Array.isArray((raw as { data?: unknown[] })?.data) ? (raw as { data?: unknown[] }).data : Array.isArray(raw) ? raw : [];
+        console.log('Parsed items:', items);
+
+        if (items && items.length > 0) {
+          const ids = items
+            .map((a) => (a as { jobPostId?: unknown })?.jobPostId)
+            .map((jp) => (typeof jp === 'object' && jp && '_id' in jp ? (jp as { _id: string })._id : jp))
+            .filter(Boolean);
+
+          console.log('Extracted job IDs from original API:', ids);
+          setAppliedIds(new Set(ids as string[]));
+          return;
+        }
+      } catch (apiError) {
+        console.warn('Original API also failed:', apiError);
+      }
+
+      console.log('Both APIs failed, no applied jobs data available');
+
     } catch (e) {
+      console.error('Error fetching applied jobs:', e);
       // silent
     } finally {
       setLoadingApplied(false);
@@ -121,17 +163,44 @@ export function useUserJobActions(options: UseUserJobActionsOptions = {}) {
 
   const applyToJob = useCallback(async (jobId: string) => {
     if (!requireAuth() || !userId) return false;
+
+    // Kiểm tra xem đã ứng tuyển chưa
     if (appliedIds.has(jobId)) {
-      toast.info('Bạn đã ứng tuyển công việc này');
+      toast.info('Bạn đã ứng tuyển công việc này rồi');
       return true;
     }
+
     markActionLoading(jobId, true);
     try {
+      // Kiểm tra xem đã ứng tuyển chưa trước khi tạo
+      try {
+        const checkResponse = await applicationsApi.checkExistingApplication(userId, jobId);
+        if (checkResponse?.data?.hasApplied) {
+          toast.info('Bạn đã ứng tuyển công việc này rồi');
+          setAppliedIds((prev) => new Set(prev).add(jobId));
+          return true;
+        }
+      } catch (checkError) {
+        // Nếu không thể kiểm tra, tiếp tục với việc tạo application
+        console.warn('Không thể kiểm tra application hiện tại:', checkError);
+      }
+
+      // Tạo application mới
       await applicationsApi.applyForJob({ userId, jobPostId: jobId });
       setAppliedIds((prev) => new Set(prev).add(jobId));
       toast.success(SUCCESS_MESSAGES.APPLICATION_SUBMITTED);
       return true;
-    } catch (e) {
+    } catch (error: unknown) {
+      // Xử lý lỗi 409 Conflict (đã ứng tuyển rồi)
+      if ((error as { response?: { status?: number } })?.response?.status === 409) {
+        toast.info('Bạn đã ứng tuyển công việc này rồi');
+        // Cập nhật state để tránh gọi API lại
+        setAppliedIds((prev) => new Set(prev).add(jobId));
+        return true;
+      }
+
+      // Xử lý các lỗi khác
+      toast.error('Có lỗi xảy ra khi ứng tuyển. Vui lòng thử lại.');
       return false;
     } finally {
       markActionLoading(jobId, false);

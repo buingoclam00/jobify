@@ -16,7 +16,7 @@ import {
 } from '@/components/ui';
 import { useAuth } from '@/contexts/auth-context';
 import { useApi } from '@/hooks/use-api';
-import { applicationApi } from '@/lib/api';
+import { applicationsApi } from '@/lib/api';
 import { APPLICATION_STATUS_OPTIONS } from '@/lib/constants';
 import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -63,7 +63,7 @@ const ProfilePage = () => {
     loading: applicationsLoading,
     refetch: refetchApplications
   } = useApi(
-    () => user ? applicationApi.getUserApplications(user._id) : Promise.resolve(null),
+    () => user ? applicationsApi.getApplicationsByUserSimple(user._id) : Promise.resolve(null),
     [],
     { immediate: false }
   );
@@ -73,6 +73,9 @@ const ProfilePage = () => {
       refetchApplications();
     }
   }, [user, refetchApplications]);
+
+  // Debug log
+  console.log('Profile page applications data:', applications);
 
   if (isLoading) {
     return (
@@ -104,9 +107,9 @@ const ProfilePage = () => {
   ];
 
   const getApplicationStats = () => {
-    if (!applications?.data) return { total: 0, pending: 0, accepted: 0, rejected: 0 };
+    if (!applications) return { total: 0, pending: 0, accepted: 0, rejected: 0 };
 
-    const stats = applications.data.reduce((acc: any, app: any) => {
+    const stats = applications.reduce((acc: any, app: any) => {
       acc.total++;
       acc[app.status] = (acc[app.status] || 0) + 1;
       return acc;
@@ -421,9 +424,9 @@ const ProfilePage = () => {
                             </div>
                           ))}
                         </div>
-                      ) : applications?.data?.length > 0 ? (
+                      ) : applications?.length > 0 ? (
                         <div className="space-y-4">
-                          {applications.data.slice(0, 3).map((application: any) => {
+                          {applications.slice(0, 3).map((application: any) => {
                             const job = application.jobPostId;
                             const company = job?.companyId;
                             const statusOption = APPLICATION_STATUS_OPTIONS.find(
@@ -450,11 +453,16 @@ const ProfilePage = () => {
                                   <div className="flex items-center gap-2 mt-1">
                                     <Clock className="w-3 h-3 text-gray-400" />
                                     <span className="text-xs text-gray-500">
-                                      {formatRelativeTime(application.appliedAt)}
+                                      {formatRelativeTime(application.createdAt)}
                                     </span>
                                   </div>
                                 </div>
-                                <Badge variant={statusOption?.variant || 'secondary'}>
+                                <Badge
+                                  style={{
+                                    backgroundColor: statusOption?.bgColor || '#f3f4f6',
+                                    color: statusOption?.color || '#6b7280'
+                                  }}
+                                >
                                   {statusOption?.label || application.status}
                                 </Badge>
                               </div>
@@ -486,7 +494,7 @@ const ProfilePage = () => {
 
             {activeTab === 'applications' && (
               <ApplicationHistory
-                applications={applications?.data || []}
+                applications={applications || []}
                 loading={applicationsLoading}
                 onRefresh={refetchApplications}
               />

@@ -304,7 +304,7 @@ const CreateJobPage = () => {
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-4 sm:py-6">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -321,7 +321,7 @@ const CreateJobPage = () => {
 
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between">
               {steps.map((step, index) => {
                 const Icon = step.icon;
@@ -360,7 +360,7 @@ const CreateJobPage = () => {
 
       {/* Form Content */}
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <form onSubmit={handleSubmit(onSubmit)}>
             <motion.div
               key={currentStep}
@@ -795,8 +795,8 @@ Ví dụ:
                             Xác nhận đăng tin
                           </h4>
                           <p className="text-gray-600 text-sm mb-4">
-                            Tin tuyển dụng sẽ được đăng và hiển thị công khai.
-                            Bạn có thể chỉnh sửa hoặc tạm dừng tin này sau khi đăng.
+                            Tin tuyển dụng sẽ được gửi để admin duyệt. Sau khi được duyệt, tin sẽ được hiển thị công khai.
+                            Bạn có thể theo dõi trạng thái duyệt trong trang quản lý.
                           </p>
 
                           <div className="flex items-start gap-3">

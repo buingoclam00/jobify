@@ -13,7 +13,7 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
   ({ className, variant = 'default', size = 'md', children, ...props }, ref) => {
     const badgeClasses = cn(
       // Base styles
-      'inline-flex items-center font-medium rounded-full',
+      'inline-flex items-center font-medium rounded-full whitespace-nowrap',
 
       // Size variants
       size === 'sm' && 'px-2 py-0.5 text-xs',

@@ -170,6 +170,24 @@ export class ApplicationsService {
     return this.findAll(updatedFilter);
   }
 
+  async findByUserSimple(userId: string): Promise<Application[]> {
+    const applications = await this.applicationModel
+      .find({ userId })
+      .populate({
+        path: 'jobPostId',
+        populate: [
+          { path: 'companyId', select: '-passwordHash' },
+          { path: 'categoryId' },
+          { path: 'skillIds' },
+        ],
+      })
+      .select('jobPostId status createdAt message resumeUrl')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return applications;
+  }
+
   async findByJobPost(
     jobPostId: string,
     filterDto: ApplicationFilterDto,

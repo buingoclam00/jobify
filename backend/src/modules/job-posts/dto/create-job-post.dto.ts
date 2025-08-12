@@ -104,11 +104,21 @@ export class CreateJobPostDto {
 
   @ApiPropertyOptional({
     description: 'Whether the job post is active',
-    example: true,
+    example: false,
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  isActive?: boolean = false;
+
+  @ApiPropertyOptional({
+    description: 'Job status for approval workflow',
+    example: 'pending',
+    default: 'pending',
+  })
+  @IsOptional()
+  @IsString()
+  status?: string = 'pending';
 
   @ApiPropertyOptional({
     description: 'Job expiration date',

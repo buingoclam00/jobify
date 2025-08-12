@@ -188,6 +188,10 @@ export const applicationsApi = {
   getApplicationsByUser: (userId: string, params?: any) =>
     api.get(`/applications/user/${userId}`, { params }),
 
+  // Get simple applications list by user
+  getApplicationsByUserSimple: (userId: string) =>
+    api.get(`/applications/user/${userId}/simple`),
+
   // Get user application stats
   getUserApplicationStats: (userId: string) =>
     api.get(`/applications/user/${userId}/stats`),

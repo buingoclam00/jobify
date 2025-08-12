@@ -1,6 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsMongoId, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsMongoId,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 import { ExperienceLevel, JobType } from '../../../common/enums';
 
@@ -104,4 +112,13 @@ export class JobPostFilterDto extends PaginationDto {
   @IsOptional()
   @IsString()
   sortOrder?: 'asc' | 'desc';
+
+  @ApiPropertyOptional({
+    description: 'Job status filter',
+    example: 'pending',
+    enum: ['pending', 'approved', 'rejected'],
+  })
+  @IsOptional()
+  @IsString()
+  status?: string;
 }

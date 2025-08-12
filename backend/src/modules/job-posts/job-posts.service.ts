@@ -19,7 +19,14 @@ export class JobPostsService {
 
   async create(createJobPostDto: CreateJobPostDto): Promise<JobPost> {
     try {
-      const newJobPost = new this.jobPostModel(createJobPostDto);
+      // Đảm bảo job mới luôn có isActive = false và status = 'pending'
+      const jobData = {
+        ...createJobPostDto,
+        isActive: false,
+        status: 'pending',
+      };
+
+      const newJobPost = new this.jobPostModel(jobData);
       const savedJobPost = await newJobPost.save();
       return this.findOne((savedJobPost._id as any).toString());
     } catch (error) {
@@ -44,12 +51,22 @@ export class JobPostsService {
       maxSalary,
       sortBy = 'createdAt',
       sortOrder = 'desc',
+      status, // Thêm filter theo status
     } = filterDto;
     console.log(filterDto);
     const skip = (page - 1) * limit;
 
-    // Build filter object
-    const filter: any = { isActive: true };
+    // Build filter object - chỉ hiển thị job đã được duyệt cho user thường
+    const filter: any = { isActive: true, status: 'approved' };
+
+    // Nếu có filter status cụ thể, override filter mặc định
+    if (status) {
+      filter.status = status;
+      // Nếu status không phải 'approved', bỏ điều kiện isActive
+      if (status !== 'approved') {
+        delete filter.isActive;
+      }
+    }
 
     // Add search filter if search parameter is provided
     if (search && search.trim()) {

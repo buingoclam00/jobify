@@ -25,7 +25,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
 
       <div className="relative container mx-auto px-4 py-20 lg:py-32">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-6xl mx-auto text-center">
           <motion.h1
             className="text-4xl lg:text-6xl font-bold mb-6"
             initial={{ opacity: 0, y: 30 }}
@@ -50,7 +50,7 @@ const HeroSection = () => {
 
           {/* Search Bar */}
           <motion.div
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 max-w-4xl mx-auto"
+            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 max-w-6xl mx-auto"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}

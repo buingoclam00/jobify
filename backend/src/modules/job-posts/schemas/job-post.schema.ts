@@ -43,6 +43,12 @@ export class JobPost extends BaseSchema {
   @Prop({ default: true })
   isActive: boolean;
 
+  @Prop({
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+  })
+  status: string;
+
   @Prop()
   expiresAt?: Date;
 
@@ -92,4 +98,5 @@ JobPostSchema.index({ location: 1 });
 JobPostSchema.index({ jobType: 1 });
 JobPostSchema.index({ experienceLevel: 1 });
 JobPostSchema.index({ isActive: 1 });
+JobPostSchema.index({ status: 1 });
 JobPostSchema.index({ createdAt: -1 });

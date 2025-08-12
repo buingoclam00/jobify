@@ -81,14 +81,18 @@ const JobApprovalList = ({
   if (jobs.length === 0) {
     return (
       <Card>
-        <CardContent className="text-center py-12">
-          <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <CardContent className="text-center py-16">
+          <Briefcase className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
             Không có tin tuyển dụng nào cần phê duyệt
           </h3>
-          <p className="text-gray-600">
-            Tất cả tin tuyển dụng đã được xử lý.
+          <p className="text-gray-600 mb-4">
+            Tất cả tin tuyển dụng đã được xử lý hoặc chưa có tin nào được gửi để duyệt.
           </p>
+          <div className="text-sm text-gray-500">
+            <p>• Tin tuyển dụng mới sẽ có trạng thái "Chờ duyệt"</p>
+            <p>• Admin cần phê duyệt trước khi tin được hiển thị công khai</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -98,19 +102,41 @@ const JobApprovalList = ({
     <>
       <div className="space-y-4">
         {jobs.map((job, index) => {
-          const company = job.companyId;
-          const category = job.categoryId;
-          const skills = Array.isArray(job.skillIds)
-            ? job.skillIds.filter((skill: any) => typeof skill === 'object')
+          const jobData = job as {
+            _id: string;
+            title: string;
+            description?: string;
+            companyId: {
+              name?: string;
+              logoUrl?: string;
+              employeeCount?: string;
+              industry?: string;
+              websiteUrl?: string;
+            };
+            categoryId: { name?: string };
+            skillIds: Array<{ _id: string; name: string }>;
+            jobType: string;
+            experienceLevel: string;
+            expiresAt: string;
+            createdAt: string;
+            salaryMin?: number;
+            salaryMax?: number;
+            location?: string;
+          };
+
+          const company = jobData.companyId;
+          const category = jobData.categoryId;
+          const skills = Array.isArray(jobData.skillIds)
+            ? jobData.skillIds.filter((skill) => typeof skill === 'object')
             : [];
 
-          const jobTypeOption = JOB_TYPE_OPTIONS.find(option => option.value === job.jobType);
-          const experienceOption = EXPERIENCE_LEVEL_OPTIONS.find(option => option.value === job.experienceLevel);
-          const urgency = getUrgencyLevel(job.expiresAt);
+          const jobTypeOption = JOB_TYPE_OPTIONS.find(option => option.value === jobData.jobType);
+          const experienceOption = EXPERIENCE_LEVEL_OPTIONS.find(option => option.value === jobData.experienceLevel);
+          const urgency = getUrgencyLevel(jobData.expiresAt);
 
           return (
             <motion.div
-              key={job._id}
+              key={jobData._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -132,9 +158,9 @@ const JobApprovalList = ({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="text-lg font-semibold text-gray-900">
-                              {job.title}
+                              {jobData.title}
                             </h3>
-                            <Badge variant={urgency.color as any} size="sm">
+                            <Badge variant={urgency.color as 'outline' | 'secondary' | 'default' | 'success' | 'warning' | 'danger' | 'info'} size="sm">
                               {urgency.label}
                             </Badge>
                           </div>
@@ -144,28 +170,28 @@ const JobApprovalList = ({
                           </p>
 
                           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-3">
-                            {job.location && (
+                            {jobData.location && (
                               <div className="flex items-center gap-1">
                                 <MapPin className="w-4 h-4" />
-                                <span>{job.location}</span>
+                                <span>{jobData.location}</span>
                               </div>
                             )}
 
-                            {(job.salaryMin || job.salaryMax) && (
+                            {(jobData.salaryMin || jobData.salaryMax) && (
                               <div className="flex items-center gap-1">
                                 <DollarSign className="w-4 h-4" />
-                                <span>{formatSalaryRange(job.salaryMin, job.salaryMax)}</span>
+                                <span>{formatSalaryRange(jobData.salaryMin, jobData.salaryMax)}</span>
                               </div>
                             )}
 
                             <div className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
-                              <span>Hết hạn {formatDate(job.expiresAt)}</span>
+                              <span>Hết hạn {formatDate(jobData.expiresAt)}</span>
                             </div>
 
                             <div className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
-                              <span>Đăng {formatRelativeTime(job.createdAt)}</span>
+                              <span>Đăng {formatRelativeTime(jobData.createdAt)}</span>
                             </div>
                           </div>
 
@@ -187,7 +213,7 @@ const JobApprovalList = ({
                           {/* Skills */}
                           {skills.length > 0 && (
                             <div className="flex flex-wrap gap-1 mb-3">
-                              {skills.slice(0, 5).map((skill: any) => (
+                              {skills.slice(0, 5).map((skill) => (
                                 <Badge key={skill._id} variant="secondary" size="sm">
                                   {skill.name}
                                 </Badge>
@@ -202,7 +228,7 @@ const JobApprovalList = ({
 
                           {/* Description Preview */}
                           <p className="text-sm text-gray-600 line-clamp-2">
-                            {job.description?.replace(/<[^>]*>/g, '').substring(0, 200)}...
+                            {jobData.description?.replace(/<[^>]*>/g, '').substring(0, 200)}...
                           </p>
                         </div>
 
@@ -210,7 +236,7 @@ const JobApprovalList = ({
                         <div className="flex flex-col gap-2">
                           <Button
                             size="sm"
-                            onClick={() => setSelectedJob(job)}
+                            onClick={() => setSelectedJob(jobData)}
                             className="flex items-center gap-2"
                           >
                             <Eye className="w-4 h-4" />
@@ -220,7 +246,7 @@ const JobApprovalList = ({
                           <div className="flex gap-2">
                             <Button
                               size="sm"
-                              onClick={() => onApprove(job._id)}
+                              onClick={() => onApprove(jobData._id)}
                               disabled={approving || rejecting}
                               loading={approving}
                               className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
@@ -233,7 +259,7 @@ const JobApprovalList = ({
                               size="sm"
                               variant="outline"
                               onClick={() => {
-                                setSelectedJob(job);
+                                setSelectedJob(jobData);
                                 setShowRejectModal(true);
                               }}
                               disabled={approving || rejecting}

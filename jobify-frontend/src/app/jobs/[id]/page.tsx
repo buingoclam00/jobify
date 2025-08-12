@@ -2,39 +2,39 @@
 
 import RelatedJobs from '@/components/features/jobs/related-jobs';
 import {
-    Avatar,
-    Badge,
-    Button,
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    SkeletonCard
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  SkeletonCard
 } from '@/components/ui';
 import { useApi } from '@/hooks/use-api';
 import { useUserJobActions } from '@/hooks/use-user-job-actions';
 import { jobsApi } from '@/lib/api';
 import { EXPERIENCE_LEVEL_OPTIONS, JOB_TYPE_OPTIONS } from '@/lib/constants';
 import {
-    formatDate,
-    formatRelativeTime,
-    formatSalaryRange
+  formatDate,
+  formatRelativeTime,
+  formatSalaryRange
 } from '@/lib/utils';
 import {
-    ArrowLeft,
-    Briefcase,
-    Building2,
-    Calendar,
-    CheckCircle,
-    Clock,
-    DollarSign,
-    Globe,
-    Heart,
-    Mail,
-    MapPin,
-    Share2,
-    Star,
-    Users
+  ArrowLeft,
+  Briefcase,
+  Building2,
+  Calendar,
+  CheckCircle,
+  Clock,
+  DollarSign,
+  Globe,
+  Heart,
+  Mail,
+  MapPin,
+  Share2,
+  Star,
+  Users
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
@@ -81,7 +81,7 @@ function JobDetailPageContent() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-6">
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-6xl mx-auto space-y-6">
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
@@ -178,13 +178,13 @@ function JobDetailPageContent() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
               {/* Job Header */}
               <Card>
-                <CardContent className="p-6">
+                <CardContent>
                   <div className="flex items-start gap-4 mb-6">
                     <Avatar
                       src={company?.logoUrl}
@@ -195,9 +195,26 @@ function JobDetailPageContent() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                            {job.title}
-                          </h1>
+                          <div className='flex items-center gap-3 flex-wrap'>
+                            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                              {job.title}
+                            </h1>
+                            <div className="flex flex-wrap gap-2">
+                              {isNew && (
+                                <Badge variant="success">Mới</Badge>
+                              )}
+                              {isExpired && (
+                                <Badge variant="danger">Hết hạn</Badge>
+                              )}
+                              {!job.isActive && (
+                                <Badge variant="secondary">Tạm dừng</Badge>
+                              )}
+                              {isApplied && (
+                                <Badge variant="info">Đã ứng tuyển</Badge>
+                              )}
+                            </div>
+                          </div>
+
                           <p className="text-lg text-gray-700 mb-2">
                             {company?.name || 'Công ty'}
                           </p>
@@ -210,31 +227,18 @@ function JobDetailPageContent() {
                             )}
                             <div className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
-                              <span>Đăng {formatRelativeTime(job.createdAt)}</span>
+                              <span>{formatRelativeTime(job.createdAt)}</span>
                             </div>
                             {job.expiresAt && (
                               <div className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4" />
-                                <span>Hết hạn {formatDate(job.expiresAt)}</span>
+                                <span>{formatDate(job.expiresAt)}</span>
                               </div>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex flex-col gap-2">
-                          {isNew && (
-                            <Badge variant="success">Mới</Badge>
-                          )}
-                          {isExpired && (
-                            <Badge variant="danger">Hết hạn</Badge>
-                          )}
-                          {!job.isActive && (
-                            <Badge variant="secondary">Tạm dừng</Badge>
-                          )}
-                          {isApplied && (
-                            <Badge variant="info">Đã ứng tuyển</Badge>
-                          )}
-                        </div>
+
                       </div>
                     </div>
                   </div>
@@ -445,7 +449,7 @@ function JobDetailPageContent() {
         </div>
       </div>
 
-  {/* Application Form Modal removed: applying directly via API */}
+      {/* Application Form Modal removed: applying directly via API */}
     </div>
   );
 }
@@ -455,7 +459,7 @@ export default function JobDetailPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-6">
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-6xl mx-auto space-y-6">
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />

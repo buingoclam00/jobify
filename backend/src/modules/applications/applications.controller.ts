@@ -70,6 +70,18 @@ export class ApplicationsController {
     return this.applicationsService.findByUser(userId, filterDto);
   }
 
+  @Get('user/:userId/simple')
+  @Public()
+  @ApiOperation({ summary: 'Get simple applications list by user ID' })
+  @ApiParam({ name: 'userId', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'User applications retrieved successfully',
+  })
+  async findByUserSimple(@Param('userId') userId: string) {
+    return this.applicationsService.findByUserSimple(userId);
+  }
+
   @Get('user/:userId/stats')
   @Public()
   @ApiOperation({ summary: 'Get application statistics for a user' })

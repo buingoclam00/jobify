@@ -22,7 +22,8 @@ import {
   FileText,
   MapPin,
   RotateCcw,
-  Search
+  Search,
+  Users
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -36,6 +37,9 @@ const ApplicationHistory = ({ applications, loading, onRefresh }: ApplicationHis
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+
+  // Debug log
+  console.log('ApplicationHistory received applications:', applications);
 
   const statusOptions = [
     { value: 'all', label: 'Tất cả trạng thái' },
@@ -66,9 +70,9 @@ const ApplicationHistory = ({ applications, loading, onRefresh }: ApplicationHis
     .sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime();
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case 'oldest':
-          return new Date(a.appliedAt).getTime() - new Date(b.appliedAt).getTime();
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         case 'company':
           const companyA = a.jobPostId?.companyId?.name || '';
           const companyB = b.jobPostId?.companyId?.name || '';
@@ -138,17 +142,17 @@ const ApplicationHistory = ({ applications, loading, onRefresh }: ApplicationHis
               </div>
               <div className="text-sm text-yellow-700">Đang chờ</div>
             </div>
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                {statusStats.reviewed || 0}
+              </div>
+              <div className="text-sm text-blue-700">Đã xem</div>
+            </div>
             <div className="text-center p-3 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
                 {statusStats.accepted || 0}
               </div>
               <div className="text-sm text-green-700">Được chấp nhận</div>
-            </div>
-            <div className="text-center p-3 bg-red-50 rounded-lg">
-              <div className="text-2xl font-bold text-red-600">
-                {statusStats.rejected || 0}
-              </div>
-              <div className="text-sm text-red-700">Bị từ chối</div>
             </div>
           </div>
 
@@ -263,15 +267,38 @@ const ApplicationHistory = ({ applications, loading, onRefresh }: ApplicationHis
 
                               <div className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4" />
-                                <span>Ứng tuyển {formatRelativeTime(application.appliedAt)}</span>
+                                <span>Ứng tuyển {formatRelativeTime(application.createdAt)}</span>
                               </div>
+
+                              {job?.jobType && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-4 h-4" />
+                                  <span className="capitalize">{job.jobType.replace('-', ' ')}</span>
+                                </div>
+                              )}
+
+                              {job?.experienceLevel && (
+                                <div className="flex items-center gap-1">
+                                  <Users className="w-4 h-4" />
+                                  <span className="capitalize">{job.experienceLevel}</span>
+                                </div>
+                              )}
                             </div>
 
                             {/* Cover Letter Preview */}
-                            {application.coverLetter && (
+                            {application.message && (
                               <div className="bg-gray-50 rounded-lg p-3 mb-3">
                                 <p className="text-sm text-gray-700 line-clamp-2">
-                                  {application.coverLetter}
+                                  {application.message}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Job Description Preview */}
+                            {job?.description && (
+                              <div className="bg-blue-50 rounded-lg p-3 mb-3">
+                                <p className="text-sm text-gray-700 line-clamp-3">
+                                  {job.description}
                                 </p>
                               </div>
                             )}
@@ -279,7 +306,12 @@ const ApplicationHistory = ({ applications, loading, onRefresh }: ApplicationHis
 
                           {/* Status & Actions */}
                           <div className="flex flex-col items-end gap-3">
-                            <Badge variant={statusOption?.variant || 'secondary'}>
+                            <Badge
+                              style={{
+                                backgroundColor: statusOption?.bgColor || '#f3f4f6',
+                                color: statusOption?.color || '#6b7280'
+                              }}
+                            >
                               {statusOption?.label || application.status}
                             </Badge>
 
@@ -299,7 +331,7 @@ const ApplicationHistory = ({ applications, loading, onRefresh }: ApplicationHis
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="flex items-center gap-2 text-xs text-gray-500">
                             <Clock className="w-3 h-3" />
-                            <span>Ứng tuyển: {formatDate(application.appliedAt)}</span>
+                            <span>Ứng tuyển: {formatDate(application.createdAt)}</span>
                             {application.reviewedAt && (
                               <>
                                 <span>•</span>

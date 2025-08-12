@@ -53,7 +53,7 @@ const AdminDashboard = () => {
     refetch: refetchStats
   } = useApi(
     () => adminsApi.getSystemStats(),
-    {},
+    [],
     { immediate: true }
   );
 
@@ -124,13 +124,14 @@ const AdminDashboard = () => {
     }
   };
 
-  const filteredJobs = pendingJobs?.data?.filter((job: any) => {
+  const filteredJobs = pendingJobs?.data?.filter((job: unknown) => {
+    const jobData = job as { title?: string; companyId?: { name?: string }; expiresAt?: string };
     const matchesSearch = !searchQuery ||
-      job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.companyId?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      jobData.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      jobData.companyId?.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesFilter = pendingJobsFilter === 'all' ||
-      (pendingJobsFilter === 'urgent' && new Date(job.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+      (pendingJobsFilter === 'urgent' && new Date(jobData.expiresAt || '').getTime() < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).getTime());
 
     return matchesSearch && matchesFilter;
   }) || [];
@@ -205,8 +206,8 @@ const AdminDashboard = () => {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${isActive
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -250,7 +251,7 @@ const AdminDashboard = () => {
                       <Button
                         onClick={() => setActiveTab('jobs')}
                         className="w-full justify-start"
-                        variant={pendingJobs?.data?.length > 0 ? 'default' : 'outline'}
+                        variant={pendingJobs?.data?.length > 0 ? 'primary' : 'outline'}
                       >
                         <Briefcase className="w-4 h-4 mr-2" />
                         Phê duyệt việc làm ({pendingJobs?.data?.length || 0} chờ xử lý)
@@ -293,22 +294,30 @@ const AdminDashboard = () => {
                         </div>
                       ) : recentApplications?.data?.length > 0 ? (
                         <div className="space-y-3">
-                          {recentApplications.data.slice(0, 5).map((application: any) => (
-                            <div key={application._id} className="text-sm">
-                              <p className="text-gray-900">
-                                <span className="font-medium">
-                                  {application.userId?.name}
-                                </span>
-                                {' '}đã ứng tuyển{' '}
-                                <span className="font-medium">
-                                  {application.jobPostId?.title}
-                                </span>
-                              </p>
-                              <p className="text-gray-500 text-xs">
-                                {formatRelativeTime(application.createdAt)}
-                              </p>
-                            </div>
-                          ))}
+                          {recentApplications.data.slice(0, 5).map((application: unknown) => {
+                            const appData = application as {
+                              _id: string;
+                              userId?: { name?: string };
+                              jobPostId?: { title?: string };
+                              createdAt?: string
+                            };
+                            return (
+                              <div key={appData._id} className="text-sm">
+                                <p className="text-gray-900">
+                                  <span className="font-medium">
+                                    {appData.userId?.name}
+                                  </span>
+                                  {' '}đã ứng tuyển{' '}
+                                  <span className="font-medium">
+                                    {appData.jobPostId?.title}
+                                  </span>
+                                </p>
+                                <p className="text-gray-500 text-xs">
+                                  {formatRelativeTime(appData.createdAt || '')}
+                                </p>
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="text-gray-500 text-sm">Chưa có hoạt động nào</p>
@@ -322,32 +331,47 @@ const AdminDashboard = () => {
             {/* Jobs Approval Tab */}
             {activeTab === 'jobs' && (
               <div className="space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Phê duyệt việc làm</h2>
+                    <p className="text-gray-600 mt-1">
+                      {pendingJobs?.data?.length > 0
+                        ? `Có ${pendingJobs.data.length} tin tuyển dụng đang chờ phê duyệt`
+                        : 'Không có tin tuyển dụng nào cần phê duyệt'
+                      }
+                    </p>
+                  </div>
+                </div>
+
                 {/* Filters */}
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex flex-col md:flex-row gap-4">
-                      <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                          type="text"
-                          placeholder="Tìm kiếm tin tuyển dụng..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                {pendingJobs?.data?.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1 relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                          <input
+                            type="text"
+                            placeholder="Tìm kiếm tin tuyển dụng..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+
+                        <Select
+                          value={pendingJobsFilter}
+                          onChange={setPendingJobsFilter}
+                          options={[
+                            { value: 'all', label: 'Tất cả' },
+                            { value: 'urgent', label: 'Sắp hết hạn (< 7 ngày)' }
+                          ]}
                         />
                       </div>
-
-                      <Select
-                        value={pendingJobsFilter}
-                        onChange={setPendingJobsFilter}
-                        options={[
-                          { value: 'all', label: 'Tất cả' },
-                          { value: 'urgent', label: 'Sắp hết hạn (< 7 ngày)' }
-                        ]}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Job List */}
                 <JobApprovalList
