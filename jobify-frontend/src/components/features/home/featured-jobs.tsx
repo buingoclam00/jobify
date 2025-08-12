@@ -7,7 +7,7 @@ import { ANIMATION_VARIANTS } from '@/lib/constants';
 import { JobPost } from '@/lib/types';
 import { formatCurrency, formatRelativeTime } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { ArrowRight, Building2, MapPin } from 'lucide-react';
+import { ArrowRight, Building2, Clock, MapPin, Users } from 'lucide-react';
 
 const FeaturedJobs = () => {
   const { data: jobsResponse, loading } = useApi(
@@ -71,49 +71,134 @@ const FeaturedJobs = () => {
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                        {job.title}
+                      <h3 className="font-semibold text-lg text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                        {job.title || 'Chưa có tiêu đề'}
                       </h3>
+
+                      {/* Company Info */}
                       <div className="flex items-center text-gray-600 mb-2">
-                        <Building2 className="w-4 h-4 mr-2" />
-                        <span className="text-sm">
-                          {typeof job.companyId === 'object' ? job.companyId.name : 'Công ty'}
+                        <Building2 className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span className="text-sm truncate">
+                          {job.companyId && typeof job.companyId === 'object' && job.companyId.name
+                            ? job.companyId.name
+                            : 'Công ty chưa cập nhật'}
                         </span>
                       </div>
+
+                      {/* Location */}
                       {job.location && (
                         <div className="flex items-center text-gray-600 mb-3">
-                          <MapPin className="w-4 h-4 mr-2" />
-                          <span className="text-sm">{job.location}</span>
+                          <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span className="text-sm truncate">{job.location}</span>
                         </div>
                       )}
+
+                      {/* Job Type & Experience */}
+                      <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        {job.jobType && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            <span className="capitalize">
+                              {job.jobType === 'full-time' ? 'Toàn thời gian' :
+                                job.jobType === 'part-time' ? 'Bán thời gian' :
+                                  job.jobType === 'contract' ? 'Hợp đồng' :
+                                    job.jobType === 'freelance' ? 'Freelance' : job.jobType}
+                            </span>
+                          </div>
+                        )}
+                        {job.experienceLevel && (
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span className="capitalize">
+                              {job.experienceLevel === 'entry' ? 'Mới tốt nghiệp' :
+                                job.experienceLevel === 'mid' ? 'Mid-level' :
+                                  job.experienceLevel === 'senior' ? 'Senior' :
+                                    job.experienceLevel === 'lead' ? 'Lead' :
+                                      String(job.experienceLevel)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <Badge variant="outline" className="ml-2">
-                      {formatRelativeTime(job.createdAt)}
+
+                    {/* Time Badge */}
+                    <Badge variant="outline" className="ml-2 flex-shrink-0">
+                      {job.createdAt ? formatRelativeTime(job.createdAt) : 'Mới đăng'}
                     </Badge>
                   </div>
 
+                  {/* Skills */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {Array.isArray(job.skillIds) && job.skillIds.slice(0, 3).map((skill: any) => (
-                      <Badge key={typeof skill === 'object' ? skill._id : skill} variant="secondary">
-                        {typeof skill === 'object' ? skill.name : skill}
+                    {Array.isArray(job.skillIds) && job.skillIds.length > 0 ? (
+                      job.skillIds.slice(0, 3).map((skill: unknown, index: number) => {
+                        // Debug logging
+                        console.log('Skill item:', skill, 'Type:', typeof skill);
+
+                        // Kiểm tra nếu skill là object có name (đã được populate)
+                        if (typeof skill === 'object' && skill && 'name' in skill && skill.name) {
+                          return (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {String(skill.name)}
+                            </Badge>
+                          );
+                        }
+
+                        // Nếu skill là string và có vẻ như là ID (24 ký tự hex), bỏ qua
+                        if (typeof skill === 'string' && /^[a-f0-9]{24}$/i.test(skill)) {
+                          console.log('Skipping skill ID:', skill);
+                          return null;
+                        }
+
+                        // Nếu skill là string khác (có thể là tên skill), hiển thị
+                        if (typeof skill === 'string' && skill.trim()) {
+                          return (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {skill.trim()}
+                            </Badge>
+                          );
+                        }
+
+                        // Nếu skill là object nhưng không có name, bỏ qua
+                        if (typeof skill === 'object' && skill && '_id' in skill) {
+                          console.log('Skill object without name:', skill);
+                          return null;
+                        }
+
+                        return null;
+                      }).filter(Boolean) // Lọc bỏ null values
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        Chưa có kỹ năng
                       </Badge>
-                    ))}
+                    )}
                   </div>
 
+                  {/* Salary & Action */}
                   <div className="flex items-center justify-between">
                     <div className="text-lg font-semibold text-green-600">
-                      {job.salaryMin || job.salaryMax ?
-                        formatCurrency(job.salaryMin || job.salaryMax || 0) +
-                        (job.salaryMin && job.salaryMax ? ' - ' + formatCurrency(job.salaryMax) : '+')
-                        : 'Thỏa thuận'
-                      }
+                      {job.salaryMin || job.salaryMax ? (
+                        <>
+                          {formatCurrency(job.salaryMin || 0)}
+                          {job.salaryMin && job.salaryMax && job.salaryMin !== job.salaryMax && (
+                            <> - {formatCurrency(job.salaryMax)}</>
+                          )}
+                          {!job.salaryMin && job.salaryMax && '+'}
+                        </>
+                      ) : (
+                        'Thỏa thuận'
+                      )}
                     </div>
+
                     <Badge
-                      variant={job.jobType === 'full-time' ? 'success' : 'warning'}
+                      variant={job.jobType === 'full-time' ? 'success' :
+                        job.jobType === 'part-time' ? 'warning' :
+                          job.jobType === 'contract' ? 'secondary' : 'outline'}
                     >
                       {job.jobType === 'full-time' ? 'Toàn thời gian' :
                         job.jobType === 'part-time' ? 'Bán thời gian' :
-                          job.jobType === 'contract' ? 'Hợp đồng' : 'Freelance'}
+                          job.jobType === 'contract' ? 'Hợp đồng' :
+                            job.jobType === 'freelance' ? 'Freelance' :
+                              job.jobType || 'Không xác định'}
                     </Badge>
                   </div>
                 </CardContent>
