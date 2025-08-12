@@ -330,4 +330,29 @@ export class ApplicationsService {
 
     return result;
   }
+
+  async getApplicationsByCompanyDetailed(
+    companyId: string,
+  ): Promise<Application[]> {
+    const applications = await this.applicationModel
+      .find()
+      .populate({
+        path: 'userId',
+        select: 'name email phone avatarUrl resumeUrl',
+      })
+      .populate({
+        path: 'jobPostId',
+        match: { companyId: companyId },
+        populate: [
+          { path: 'companyId', select: 'name logoUrl' },
+          { path: 'categoryId', select: 'name' },
+          { path: 'skillIds', select: 'name' },
+        ],
+      })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    // Filter out applications where jobPostId is null (job doesn't belong to company)
+    return applications.filter((app) => app.jobPostId);
+  }
 }

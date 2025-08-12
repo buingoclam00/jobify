@@ -124,6 +124,21 @@ export class ApplicationsController {
     return this.applicationsService.findByCompany(companyId, filterDto);
   }
 
+  @Get('company/:companyId/detailed')
+  @Public()
+  @ApiOperation({ summary: 'Get detailed applications by company ID' })
+  @ApiParam({ name: 'companyId', description: 'Company ID' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Company applications with full details retrieved successfully',
+  })
+  async getApplicationsByCompanyDetailed(
+    @Param('companyId') companyId: string,
+  ) {
+    return this.applicationsService.getApplicationsByCompanyDetailed(companyId);
+  }
+
   @Get('company/:companyId/stats')
   @Public()
   @ApiOperation({ summary: 'Get application statistics for a company' })

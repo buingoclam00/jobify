@@ -204,6 +204,10 @@ export const applicationsApi = {
   getApplicationsByCompany: (companyId: string, params?: any) =>
     api.get(`/applications/company/${companyId}`, { params }),
 
+  // Get detailed applications by company
+  getApplicationsByCompanyDetailed: (companyId: string) =>
+    api.get(`/applications/company/${companyId}/detailed`),
+
   // Get company application stats
   getCompanyApplicationStats: (companyId: string) =>
     api.get(`/applications/company/${companyId}/stats`),
